@@ -38,8 +38,17 @@ def create_voting_dict(strlist):
     The lists for each senator should preserve the order listed in voting data.
     In case you're feeling clever, this can be done in one line.
     """
-    pass
+    voting_dict = {}
+    for senator_str in strlist:
+        split_str = senator_str.split()
+        last_name = split_str[0]
+        votes = list(map(int, split_str[3:]))
+        voting_dict[last_name] = votes
+    
+    return voting_dict
 
+def list_dot(u, v):
+    return sum(u_i * v_i for u_i, v_i in zip(u, v))
 
 
 ## 2: (Task 2.12.2) Policy Compare
@@ -60,7 +69,7 @@ def policy_compare(sen_a, sen_b, voting_dict):
         
     You should definitely try to write this in one line.
     """
-    pass
+    return list_dot(voting_dict[sen_a], voting_dict[sen_b])
 
 
 
@@ -85,7 +94,10 @@ def most_similar(sen, voting_dict):
     Note that you can (and are encouraged to) re-use your policy_compare procedure.
     """
     
-    return ""
+    other_senators = voting_dict.copy()
+    del other_senators[sen]
+    return max(other_senators.keys(), 
+               key=lambda sen_b: policy_compare(sen, sen_b, voting_dict))
 
 
 
@@ -106,13 +118,16 @@ def least_similar(sen, voting_dict):
         >>> least_similar('c', vd)
         'b'
     """
-    pass
+    other_senators = voting_dict.copy()
+    del other_senators[sen]
+    return min(other_senators.keys(), 
+               key=lambda sen_b: policy_compare(sen, sen_b, voting_dict))
 
 
 
 ## 5: (Task 2.12.5) Chafee, Santorum
-most_like_chafee    = ''
-least_like_santorum = '' 
+most_like_chafee    = 'Jeffords'
+least_like_santorum = 'Feingold' 
 
 
 
@@ -131,11 +146,17 @@ def find_average_similarity(sen, sen_set, voting_dict):
         >>> vd == {'Klein':[1,1,1], 'Fox-Epstein':[1,-1,0], 'Ravella':[-1,0,0], 'Oyakawa':[-1,-1,-1], 'Loery':[0,1,1]}
         True
     """
-    return ...
+    similarities = [policy_compare(sen, sen_b, voting_dict) for sen_b in sen_set]
+    return sum(similarities) / len(similarities)
 
-most_average_Democrat = ... # give the last name (or code that computes the last name)
 
 
+
+most_average_Democrat = 'Biden' # give the last name (or code that computes the last name)
+
+def vector_add(u, v):
+    assert len(u) == len(v)
+    return [u_i + v_i for u_i, v_i in zip(u, v)]
 
 ## 7: (Task 2.12.8) Average Record
 def find_average_record(sen_set, voting_dict):
@@ -160,9 +181,57 @@ def find_average_record(sen_set, voting_dict):
         >>> find_average_record({'a'}, d)
         [0.0, 1.0, 1.0]
     """
-    return ...
+    sum_records = [0] * len(voting_dict[list(sen_set)[0]])
+    for sen in list(sen_set):
+        sum_records = vector_add(sum_records, voting_dict[sen])
+    return [sum_record / len(sen_set) for sum_record in sum_records]
 
-average_Democrat_record = ... # give the vector as a list
+average_Democrat_record = [-0.16279069767441862,
+ -0.23255813953488372,
+ 1.0,
+ 0.8372093023255814,
+ 0.9767441860465116,
+ -0.13953488372093023,
+ -0.9534883720930233,
+ 0.813953488372093,
+ 0.9767441860465116,
+ 0.9767441860465116,
+ 0.9069767441860465,
+ 0.7674418604651163,
+ 0.6744186046511628,
+ 0.9767441860465116,
+ -0.5116279069767442,
+ 0.9302325581395349,
+ 0.9534883720930233,
+ 0.9767441860465116,
+ -0.3953488372093023,
+ 0.9767441860465116,
+ 1.0,
+ 1.0,
+ 1.0,
+ 0.9534883720930233,
+ -0.4883720930232558,
+ 1.0,
+ -0.32558139534883723,
+ -0.06976744186046512,
+ 0.9767441860465116,
+ 0.8604651162790697,
+ 0.9767441860465116,
+ 0.9767441860465116,
+ 1.0,
+ 1.0,
+ 0.9767441860465116,
+ -0.3488372093023256,
+ 0.9767441860465116,
+ -0.4883720930232558,
+ 0.23255813953488372,
+ 0.8837209302325582,
+ 0.4418604651162791,
+ 0.9069767441860465,
+ -0.9069767441860465,
+ 1.0,
+ 0.9069767441860465,
+ -0.3023255813953488] # give the vector as a list
 
 
 
@@ -179,5 +248,16 @@ def bitter_rivals(voting_dict):
         >>> br == ('Fox-Epstein', 'Oyakawa') or br == ('Oyakawa', 'Fox-Epstein')
         True
     """
-    return (..., ...)
+    from itertools import combinations
+    senator_pairs = list(combinations(voting_dict.keys(), 2))
+    worst_rivals = senator_pairs[0]
+    lowest_similarity = policy_compare(*worst_rivals, voting_dict)
+    
+    for pair in senator_pairs:
+        pair_similarity = policy_compare(*pair, voting_dict)
+        if pair_similarity < lowest_similarity:
+            lowest_similarity = pair_similarity
+            worst_rivals = pair
+            
+    return worst_rivals
 
