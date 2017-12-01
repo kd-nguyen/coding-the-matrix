@@ -32,7 +32,8 @@ def setitem(v,k,val):
     0
     """
     assert k in v.D
-    v.f[k] = val
+    if val != 0:
+        v.f[k] = val
 
 def equal(u,v):
     """
@@ -192,7 +193,7 @@ class Vec:
         assert isinstance(labels, set)
         assert isinstance(function, dict)
         self.D = labels
-        self.f = function
+        self.f = {key: value for key, value in function.items() if value != 0}
 
     __getitem__ = getitem
     __setitem__ = setitem
