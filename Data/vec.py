@@ -12,7 +12,7 @@ def getitem(v,k):
     0
     """
     assert k in v.D
-    pass
+    return v.f.get(k, 0)
 
 def setitem(v,k,val):
     """
@@ -32,7 +32,8 @@ def setitem(v,k,val):
     0
     """
     assert k in v.D
-    pass
+    # if val != 0:
+    v.f[k] = val
 
 def equal(u,v):
     """
@@ -68,7 +69,7 @@ def equal(u,v):
     False
     """
     assert u.D == v.D
-    pass
+    return all(u.f.get(d, 0) == v.f.get(d, 0) for d in u.D)
 
 def add(u,v):
     """
@@ -105,7 +106,8 @@ def add(u,v):
     True
     """
     assert u.D == v.D
-    pass
+    joint_D = u.D | v.D
+    return Vec(joint_D, {d: getitem(u, d) + getitem(v, d) for d in joint_D})
 
 def dot(u,v):
     """
@@ -139,7 +141,7 @@ def dot(u,v):
     12
     """
     assert u.D == v.D
-    pass
+    return sum(u.f.get(d, 0) * v.f.get(d, 0) for d in u.D)
 
 def scalar_mul(v, alpha):
     """
@@ -159,7 +161,7 @@ def scalar_mul(v, alpha):
     >>> u == Vec({'x','y','z','w'},{'x':1,'y':2,'z':3,'w':4})
     True
     """
-    pass
+    return Vec(v.D, {d: value * alpha for d, value in v.f.items()})
 
 def neg(v):
     """
@@ -176,7 +178,7 @@ def neg(v):
     >>> -Vec({'a','b','c'}, {'a':1}) == Vec({'a','b','c'}, {'a':-1})
     True
     """
-    pass
+    return scalar_mul(v, -1)
 
 ###############################################################################################################################
 
@@ -191,7 +193,7 @@ class Vec:
         assert isinstance(labels, set)
         assert isinstance(function, dict)
         self.D = labels
-        self.f = function
+        self.f = {key: value for key, value in function.items() if value != 0}
 
     __getitem__ = getitem
     __setitem__ = setitem
@@ -239,7 +241,8 @@ class Vec:
         wd = dict([(k,(1+max(len(str(k)), len('{0:.{1}G}'.format(v[k], numdec))))) if isinstance(v[k], int) or isinstance(v[k], float) else (k,(1+max(len(str(k)), len(str(v[k]))))) for k in D_list])
         s1 = ''.join(['{0:>{1}}'.format(str(k),wd[k]) for k in D_list])
         s2 = ''.join(['{0:>{1}.{2}G}'.format(v[k],wd[k],numdec) if isinstance(v[k], int) or isinstance(v[k], float) else '{0:>{1}}'.format(v[k], wd[k]) for k in D_list])
-        return "\n" + s1 + "\n" + '-'*sum(wd.values()) +"\n" + s2
+        return "\n" + s1 + "\n" + '_'*sum(wd.values()) +"\n" + s2
+        
 
     def __hash__(self):
         "Here we pretend Vecs are immutable so we can form sets of them"

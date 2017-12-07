@@ -32,8 +32,8 @@ def setitem(v,k,val):
     0
     """
     assert k in v.D
-    if val != 0:
-        v.f[k] = val
+    # if val != 0:
+    v.f[k] = val
 
 def equal(u,v):
     """

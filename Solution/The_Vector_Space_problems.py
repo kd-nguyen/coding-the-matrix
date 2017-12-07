@@ -18,7 +18,7 @@ def vec_select(veclist, k):
     >>> vec_select([v1, v2, v3, v4], 'a') == [Vec(D,{'b': 1}), Vec(D,{'b': 2})]
     True
     '''
-    pass
+    return [v for v in veclist if v[k] == 0]
 
 def vec_sum(veclist, D):
     '''
@@ -30,7 +30,10 @@ def vec_sum(veclist, D):
     >>> vec_sum([v1, v2, v3, v4], D) == Vec(D, {'b': 13, 'a': 11})
     True
     '''
-    pass
+    sum_result = Vec(D, {})
+    for vec in veclist:
+        sum_result += vec
+    return sum_result
 
 def vec_select_sum(veclist, k, D):
     '''
@@ -42,8 +45,7 @@ def vec_select_sum(veclist, k, D):
     >>> vec_select_sum([v1, v2, v3, v4], 'a', D) == Vec(D, {'b': 3})
     True
     '''
-    pass
-
+    return vec_sum(vec_select(veclist, k), D)
 
 
 ## 2: (Problem 3.8.2) Vector Dictionary
@@ -57,12 +59,17 @@ def scale_vecs(vecdict):
     >>> [v in [Vec({1,2,4},{2: 3.0}), Vec({1,2,4},{1: 0.2, 2: 0.4, 4: 1.6})] for v in result]
     [True, True]
     '''
-    pass
-
+    return [(1/k) * v for k, v in vecdict.items()]
 
 
 ## 3: (Problem 3.8.3) Constructing a Span over GF(2)
 def GF2_span(D, L):
+    from itertools import product
+    def linear_combo(vecs, coeffs):
+        return sum(coeff * vec for vec, coeff in zip(vecs, coeffs))
+
+    return [linear_combo(L, coeff_combo) 
+            for coeff_combo in product([one, 0], repeat=len(L))]
     '''
     >>> from GF2 import one
     >>> D = {'a', 'b', 'c'}
@@ -72,30 +79,31 @@ def GF2_span(D, L):
     >>> [v in result for v in [Vec(D, {}),Vec(D, {'a': one, 'c': one}),Vec(D, {'c': one}),Vec(D, {'a':one})]
     [True, True, True, True]
     '''
-    pass
+
 
 
 
 ## 4: (Problem 3.8.7) Is it a vector space 1
 # Answer with a boolean, please.
-is_a_vector_space_1 = ...
+is_a_vector_space_1 = False
 
 
 
 ## 5: (Problem 3.8.8) Is it a vector space 2
 # Answer with a boolean, please.
-is_a_vector_space_2 = ...
+is_a_vector_space_2 = True
 
 
 
 ## 6: (Problem 3.8.9) Is it a vector space 3
 # Answer with a boolean, please.
-is_a_vector_space_3 = ...
+is_a_vector_space_3 = False
+
 
 
 
 ## 7: (Problem 3.8.10) Is it a vector space 4
 # Answer with a boolean, please.
-is_a_vector_space_4a = ...
-is_a_vector_space_4b = ...
+is_a_vector_space_4a = True
+is_a_vector_space_4b = False
 

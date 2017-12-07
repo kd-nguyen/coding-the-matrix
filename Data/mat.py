@@ -247,19 +247,43 @@ class Mat:
     def copy(self):
         return Mat(self.D, self.f.copy())
 
-    def __str__(M, rows=None, cols=None):
-        "string representation for print()"
-        if rows == None: rows = sorted(M.D[0], key=repr)
-        if cols == None: cols = sorted(M.D[1], key=repr)
-        separator = ' | '
-        numdec = 3
-        pre = 1+max([len(str(r)) for r in rows])
-        colw = {col:(1+max([len(str(col))] + [len('{0:.{1}G}'.format(M[row,col],numdec)) if isinstance(M[row,col], int) or isinstance(M[row,col], float) else len(str(M[row,col])) for row in rows])) for col in cols}
-        s1 = ' '*(1+ pre + len(separator))
-        s2 = ''.join(['{0:>{1}}'.format(str(c),colw[c]) for c in cols])
-        s3 = ' '*(pre+len(separator)) + '-'*(sum(list(colw.values())) + 1)
-        s4 = ''.join(['{0:>{1}} {2}'.format(str(r), pre,separator)+''.join(['{0:>{1}.{2}G}'.format(M[r,c],colw[c],numdec) if isinstance(M[r,c], int) or isinstance(M[r,c], float) else '{0:>{1}}'.format(M[r,c], colw[c]) for c in cols])+'\n' for r in rows])
-        return '\n' + s1 + s2 + '\n' + s3 + '\n' + s4
+    def __str__(self, rows=None, cols=None):
+        # "string representation for print()"
+        # if rows == None: rows = sorted(M.D[0], key=repr)
+        # if cols == None: cols = sorted(M.D[1], key=repr)
+        # separator = ' | '
+        # numdec = 3
+        # pre = 1+max([len(str(r)) for r in rows])
+        # colw = {col:(1+max([len(str(col))] + [len('{0:.{1}G}'.format(M[row,col],numdec)) if isinstance(M[row,col], int) or isinstance(M[row,col], float) else len(str(M[row,col])) for row in rows])) for col in cols}
+        # s1 = ' '*(1+ pre + len(separator))
+        # s2 = ''.join(['{0:>{1}}'.format(str(c),colw[c]) for c in cols])
+        # s3 = ' '*(pre+len(separator)) + '-'*(sum(list(colw.values())) + 1)
+        # s4 = ''.join(['{0:>{1}} {2}'.format(str(r), pre,separator)+''.join(['{0:>{1}.{2}G}'.format(M[r,c],colw[c],numdec) if isinstance(M[r,c], int) or isinstance(M[r,c], float) else '{0:>{1}}'.format(M[r,c], colw[c]) for c in cols])+'\n' for r in rows])
+        # return '\n' + s1 + s2 + '\n' + s3 + '\n' + s4
+
+        row_labels = rows if rows else sorted(self.D[0])
+        col_labels = cols if cols else sorted(self.D[1])
+
+        max_cell_length = max(len(str(value)) 
+                              for value in list(self.f.values()) + row_labels + col_labels + ['cols', 'rows'])
+        cell_width = max_cell_length + 3
+        row_template = ('{:>'+str(cell_width)+'}') * (len(col_labels) + 2) + '\n'
+        header = row_template.format('', 'cols|', *map(repr, col_labels))
+
+        h_separator = '_' * cell_width
+        separator = row_template.format('rows', h_separator[:-1] + '|', 
+                                 *([h_separator] * len(col_labels)))
+
+        rows = []
+        for r in row_labels:
+            rows.append(row_template.format(repr(r), '|', *([self.f.get((r, c), 0) for c in col_labels])))
+
+        return_str = header + separator
+        for row in rows:
+            return_str += row
+
+        return return_str
+
 
     def pp(self, rows, cols):
         print(self.__str__(rows, cols))
