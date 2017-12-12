@@ -13,7 +13,7 @@ def getitem(M, k):
     0
     """
     assert k[0] in M.D[0] and k[1] in M.D[1]
-    pass
+    return M.f.get(k, 0)
 
 def equal(A, B):
     """
@@ -39,7 +39,12 @@ def equal(A, B):
     True
     """
     assert A.D == B.D
-    pass
+    for r in A.D[0]:
+        for c in A.D[1]:
+            if A[(r, c)] != B[(r, c)]:
+                return False
+
+    return True
 
 def setitem(M, k, val):
     """
@@ -59,7 +64,7 @@ def setitem(M, k, val):
     True
     """
     assert k[0] in M.D[0] and k[1] in M.D[1]
-    pass
+    M.f[k] = val
 
 def add(A, B):
     """
@@ -87,7 +92,12 @@ def add(A, B):
     True
     """
     assert A.D == B.D
-    pass
+    new_M = Mat(A.D, {})
+    for r in A.D[0]:
+        for c in A.D[1]:
+            new_M[r, c] = A[r, c] + B[r, c]
+
+    return new_M
 
 def scalar_mul(M, x):
     """
@@ -101,7 +111,12 @@ def scalar_mul(M, x):
     >>> 0.25*M == Mat(({1,3,5}, {2,4}), {(1,2):1.0, (5,4):0.5, (3,4):0.75})
     True
     """
-    pass
+    new_M = Mat(M.D, {})
+    for r in M.D[0]:
+        for c in M.D[1]:
+            new_M[r, c] = M[r, c] * x
+
+    return new_M
 
 def transpose(M):
     """
@@ -115,7 +130,7 @@ def transpose(M):
     >>> M.transpose() == Mt
     True
     """
-    pass
+    return Mat((M.D[1], M.D[0]), {(c, r): v for (r, c), v in M.f.items()})
 
 def vector_matrix_mul(v, M):
     """
@@ -142,7 +157,14 @@ def vector_matrix_mul(v, M):
     True
     """
     assert M.D[0] == v.D
-    pass
+    v_sum = Vec(M.D[1], {})
+    for r in M.D[0]:
+        v_i = Vec(M.D[1], {})
+        for c in M.D[1]:
+            v_i[c] = M[r, c] * v[r]
+        v_sum += v_i
+
+    return v_sum
 
 def matrix_vector_mul(M, v):
     """
@@ -169,7 +191,14 @@ def matrix_vector_mul(M, v):
     True
     """
     assert M.D[1] == v.D
-    pass
+    v_sum = Vec(M.D[0], {})
+    for c in M.D[1]:
+        v_i = Vec(M.D[0], {})
+        for r in M.D[0]:
+            v_i[r] = M[r, c] * v[c]
+        v_sum += v_i
+
+    return v_sum
 
 def matrix_matrix_mul(A, B):
     """
@@ -247,19 +276,47 @@ class Mat:
     def copy(self):
         return Mat(self.D, self.f.copy())
 
-    def __str__(M, rows=None, cols=None):
-        "string representation for print()"
-        if rows == None: rows = sorted(M.D[0], key=repr)
-        if cols == None: cols = sorted(M.D[1], key=repr)
-        separator = ' | '
-        numdec = 3
-        pre = 1+max([len(str(r)) for r in rows])
-        colw = {col:(1+max([len(str(col))] + [len('{0:.{1}G}'.format(M[row,col],numdec)) if isinstance(M[row,col], int) or isinstance(M[row,col], float) else len(str(M[row,col])) for row in rows])) for col in cols}
-        s1 = ' '*(1+ pre + len(separator))
-        s2 = ''.join(['{0:>{1}}'.format(str(c),colw[c]) for c in cols])
-        s3 = ' '*(pre+len(separator)) + '-'*(sum(list(colw.values())) + 1)
-        s4 = ''.join(['{0:>{1}} {2}'.format(str(r), pre,separator)+''.join(['{0:>{1}.{2}G}'.format(M[r,c],colw[c],numdec) if isinstance(M[r,c], int) or isinstance(M[r,c], float) else '{0:>{1}}'.format(M[r,c], colw[c]) for c in cols])+'\n' for r in rows])
-        return '\n' + s1 + s2 + '\n' + s3 + '\n' + s4
+    def __str__(self, rows=None, cols=None):
+        # "string representation for print()"
+        # if rows == None: rows = sorted(M.D[0], key=repr)
+        # if cols == None: cols = sorted(M.D[1], key=repr)
+        # separator = ' | '
+        # numdec = 3
+        # pre = 1+max([len(str(r)) for r in rows])
+        # colw = {col:(1+max([len(str(col))] + [len('{0:.{1}G}'.format(M[row,col],numdec)) if isinstance(M[row,col], int) or isinstance(M[row,col], float) else len(str(M[row,col])) for row in rows])) for col in cols}
+        # s1 = ' '*(1+ pre + len(separator))
+        # s2 = ''.join(['{0:>{1}}'.format(str(c),colw[c]) for c in cols])
+        # s3 = ' '*(pre+len(separator)) + '-'*(sum(list(colw.values())) + 1)
+        # s4 = ''.join(['{0:>{1}} {2}'.format(str(r), pre,separator)+''.join(['{0:>{1}.{2}G}'.format(M[r,c],colw[c],numdec) if isinstance(M[r,c], int) or isinstance(M[r,c], float) else '{0:>{1}}'.format(M[r,c], colw[c]) for c in cols])+'\n' for r in rows])
+        # return '\n' + s1 + s2 + '\n' + s3 + '\n' + s4
+
+        row_labels = rows if rows else sorted(self.D[0])
+        col_labels = cols if cols else sorted(self.D[1])
+
+        row_display = 'row labels: [{}]\n'.format(', '.join(map(str, row_labels)))
+        col_display = 'col labels: [{}]\n'.format(', '.join(map(str, col_labels)))
+
+
+        max_cell_length = max(len(str(value)) 
+                              for value in list(self.f.values()) + row_labels + col_labels + ['cols', 'rows'])
+        cell_width = max_cell_length + 3
+        row_template = ('{:>'+str(cell_width)+'}') * (len(col_labels) + 2) + '\n'
+        header = row_template.format('', 'cols|', *map(repr, col_labels))
+
+        h_separator = '_' * cell_width
+        separator = row_template.format('rows', h_separator[:-1] + '|', 
+                                 *([h_separator] * len(col_labels)))
+
+        rows = []
+        for r in row_labels:
+            rows.append(row_template.format(repr(r), '|', *([self.f.get((r, c), 0) for c in col_labels])))
+
+        return_str = row_display + col_display + header + separator
+        for row in rows:
+            return_str += row
+
+        return return_str
+
 
     def pp(self, rows, cols):
         print(self.__str__(rows, cols))
@@ -270,3 +327,16 @@ class Mat:
 
     def __iter__(self):
         raise TypeError('%r object is not iterable' % self.__class__.__name__)
+
+def main():
+    N1 = Mat(({1, 3, 5, 7}, {'a', 'b'}), {(1, 'a'): -1, (1, 'b'): 2, (3, 'a'): 1, (3, 'b'):4, (7, 'a'): 3, (5, 'b'):-1})
+    u1 = Vec({'a', 'b'}, {'a': 1, 'b': 2})
+    print(N1)
+    print(u1)
+    print(N1*u1 == Vec({1, 3, 5, 7},{1: 3, 3: 9, 5: -2, 7: 3}))
+
+
+
+
+if __name__ == '__main__':
+    main()

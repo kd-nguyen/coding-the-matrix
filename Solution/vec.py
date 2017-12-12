@@ -241,7 +241,8 @@ class Vec:
         wd = dict([(k,(1+max(len(str(k)), len('{0:.{1}G}'.format(v[k], numdec))))) if isinstance(v[k], int) or isinstance(v[k], float) else (k,(1+max(len(str(k)), len(str(v[k]))))) for k in D_list])
         s1 = ''.join(['{0:>{1}}'.format(str(k),wd[k]) for k in D_list])
         s2 = ''.join(['{0:>{1}.{2}G}'.format(v[k],wd[k],numdec) if isinstance(v[k], int) or isinstance(v[k], float) else '{0:>{1}}'.format(v[k], wd[k]) for k in D_list])
-        return "\n" + s1 + "\n" + '-'*sum(wd.values()) +"\n" + s2
+        return "\n" + s1 + "\n" + '_'*sum(wd.values()) +"\n" + s2
+        
 
     def __hash__(self):
         "Here we pretend Vecs are immutable so we can form sets of them"
